@@ -11,9 +11,10 @@
 #include <time.h>
 
 // Paramètres du jeu
-#define LARGEUR_MAX 9 		// nb max de fils pour un noeud (= nb max de coups possibles)
+#define LARGEUR_MAX 7 		// nb max de fils pour un noeud (= nb max de coups possibles)
+                            // on peut mettre un jeton sur chaque ligne
 
-#define TEMPS 5		// temps de calcul pour un coup avec MCTS (en secondes)
+#define TEMPS 3		// temps de calcul pour un coup avec MCTS (en secondes)
 
 // macros
 #define AUTRE_JOUEUR(i) (1-(i))
@@ -28,10 +29,8 @@ typedef struct EtatSt {
 
 	int joueur; // à qui de jouer ? 
 
-	// TODO: à compléter par la définition de l'état du jeu
-
-	/* par exemple, pour morpion: */
-	char plateau[3][3];	
+	// plateau pour le puissance_4
+	char plateau[6][7];	
 
 } Etat;
 
@@ -73,8 +72,8 @@ Etat * etat_initial( void ) {
 	
 	/* par exemple : */
 	int i,j;	
-	for (i=0; i< 3; i++)
-		for ( j=0; j<3; j++)
+	for (i=0; i< 6; i++)
+		for ( j=0; j<7; j++)
 			etat->plateau[i][j] = ' ';
 	
 	return etat;
@@ -88,18 +87,18 @@ void afficheJeu(Etat * etat) {
 	/* par exemple : */
 	int i,j;
 	printf("   |");
-	for ( j = 0; j < 3; j++) 
+	for ( j = 0; j < 7; j++) // nombre de colonnes
 		printf(" %d |", j);
 	printf("\n");
-	printf("----------------");
+	printf("--------------------------------");
 	printf("\n");
 	
-	for(i=0; i < 3; i++) {
+	for(i=0; i < 6; i++) {
 		printf(" %d |", i);
-		for ( j = 0; j < 3; j++) 
+		for ( j = 0; j < 7; j++) 
 			printf(" %c |", etat->plateau[i][j]);
 		printf("\n");
-		printf("----------------");
+		printf("--------------------------------");
 		printf("\n");
 	}
 }
