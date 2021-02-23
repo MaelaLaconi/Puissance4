@@ -27,7 +27,7 @@ typedef enum {NON, MATCHNUL, ORDI_GAGNE, HUMAIN_GAGNE } FinDePartie;
 // Definition du type Etat (état/position du jeu)
 typedef struct EtatSt {
 
-	int joueur; // à qui de jouer ? 
+	int joueur; // à qui de jouer ?
 
 	// plateau pour le puissance_4
 	char plateau[6][7];	
@@ -37,7 +37,6 @@ typedef struct EtatSt {
 // Definition du type Coup
 typedef struct {
 	// un coup se definie par un couple (ligne, colonne)
-    
 	int ligne;
 	int colonne;
 
@@ -50,9 +49,7 @@ Etat * copieEtat( Etat * src ) {
 	etat->joueur = src->joueur;
 	
 		
-	// TODO: à compléter avec la copie de l'état src dans etat
-	
-	/* par exemple : */
+	//copie de l'état src dans etat
 	int i,j;	
 	for (i=0; i< 6; i++)
 		for ( j=0; j<7; j++)
@@ -101,7 +98,6 @@ void afficheJeu(Etat * etat) {
 
 
 // Nouveau coup 
-// TODO: adapter la liste de paramètres au jeu
 Coup * nouveauCoup(int i, int j ) {
 	Coup * coup = (Coup *)malloc(sizeof(Coup));
 	
@@ -116,15 +112,15 @@ Coup * nouveauCoup(int i, int j ) {
 // Demander à l'humain quel coup jouer 
 Coup * demanderCoup (Etat * etat) {
     
-    // TODO demander seulement le numero de la colonne
-	/* par exemple : */
+    //demander seulement le numero de la colonne et calculer la ligne
 	int ligne, col;
 	
 	printf(" quelle colonne ? ") ;
 	scanf("%d",&col); 
     
-    // on prend pour ligne la premiere dernière ligne vide (en partant du haut)
+    // on prend pour ligne la dernière ligne vide (en partant du haut)
     ligne = 0 ;
+    
     // si la premiere ligne est remplie (qu'on a deja la colonne entiere de jeton)
     // on retourne le coup
     if(etat->plateau[ligne][col] != ' '){
@@ -139,26 +135,17 @@ Coup * demanderCoup (Etat * etat) {
         if(etat->plateau[ligne][col] != ' '){
             break ;
         }
-        //printf("on a %d ",ligne) ;
     }
 	
-	//printf("apres le while") ;
-	// faire ligne - 1 ou pas ?
 	return nouveauCoup(ligne,col);
 }
 
 // Modifier l'état en jouant un coup 
 // retourne 0 si le coup n'est pas possible
-int jouerCoup( Etat * etat, Coup * coup ) {
-
-	// TODO: à compléter
-    
-    //printf("dans jouer coup etat->plateau[coup->ligne][coup->colonne] %c ", etat->plateau[coup->ligne][coup->colonne]) ;
+int jouerCoup( Etat * etat, Coup * coup ) {    
 	
 	// si on a deja un jeton a l'emplacement de notre coup
-	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' ){
-        printf("dans le print diff avec %d , %d", coup->ligne, coup -> colonne) ;
-    
+	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' ){    
 		return 0;
     }else {
         
@@ -166,7 +153,6 @@ int jouerCoup( Etat * etat, Coup * coup ) {
 		
 		// à l'autre joueur de jouer
 		etat->joueur = AUTRE_JOUEUR(etat->joueur); 	
-    //printf("APRES coup etat->plateau[coup->ligne][coup->colonne] %c ", etat->plateau[coup->ligne][coup->colonne]) ;
 
 		return 1;
 	}	
@@ -274,9 +260,6 @@ void freeNoeud ( Noeud * noeud) {
 // et retourne NON, MATCHNUL, ORDI_GAGNE ou HUMAIN_GAGNE
 FinDePartie testFin( Etat * etat ) {
 
-	// TODO...
-	
-	/* par exemple	*/
 	
 	// tester si un joueur a gagné
 	int i,j,k,n = 0;
@@ -302,7 +285,7 @@ FinDePartie testFin( Etat * etat ) {
                 
                 
                 
-				// diagonales
+				// diagonales : PAS SURE DES CALCULS
 				k=0;                            // prendre 7 ou 6 ?
 				while ( k < 4 && i+k < 6 && j+k < 7 && etat->plateau[i+k][j+k] == etat->plateau[i][j] ) 
 					k++;
@@ -334,7 +317,7 @@ FinDePartie testFin( Etat * etat ) {
 
 
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
-// en tempsmax secondes
+// en tempsmax secondes = 3
 void ordijoue_mcts(Etat * etat, int tempsmax) {
 
 	clock_t tic, toc;
