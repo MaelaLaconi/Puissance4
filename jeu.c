@@ -36,9 +36,8 @@ typedef struct EtatSt {
 
 // Definition du type Coup
 typedef struct {
-	// TODO: à compléter par la définition d'un coup 
-
-	/* par exemple, pour morpion: */
+	// un coup se definie par un couple (ligne, colonne)
+    
 	int ligne;
 	int colonne;
 
@@ -55,8 +54,8 @@ Etat * copieEtat( Etat * src ) {
 	
 	/* par exemple : */
 	int i,j;	
-	for (i=0; i< 3; i++)
-		for ( j=0; j<3; j++)
+	for (i=0; i< 6; i++)
+		for ( j=0; j<7; j++)
 			etat->plateau[i][j] = src->plateau[i][j];
 	
 
@@ -67,11 +66,9 @@ Etat * copieEtat( Etat * src ) {
 // Etat initial 
 Etat * etat_initial( void ) {
 	Etat * etat = (Etat *)malloc(sizeof(Etat));
-	
-	// TODO: à compléter avec la création de l'état initial
-	
-	/* par exemple : */
-	int i,j;	
+		
+    // grille 6 lignes, 7 colonnes vides
+    int i,j;	
 	for (i=0; i< 6; i++)
 		for ( j=0; j<7; j++)
 			etat->plateau[i][j] = ' ';
@@ -82,7 +79,6 @@ Etat * etat_initial( void ) {
 
 void afficheJeu(Etat * etat) {
 
-	// TODO: à compléter
 
 	/* par exemple : */
 	int i,j;
@@ -93,7 +89,7 @@ void afficheJeu(Etat * etat) {
 	printf("--------------------------------");
 	printf("\n");
 	
-	for(i=0; i < 6; i++) {
+	for(i=0; i < 6; i++) { // nombre de lignes
 		printf(" %d |", i);
 		for ( j = 0; j < 7; j++) 
 			printf(" %c |", etat->plateau[i][j]);
@@ -106,12 +102,11 @@ void afficheJeu(Etat * etat) {
 
 // Nouveau coup 
 // TODO: adapter la liste de paramètres au jeu
-Coup * nouveauCoup( int i, int j ) {
+Coup * nouveauCoup(int i, int j ) {
 	Coup * coup = (Coup *)malloc(sizeof(Coup));
 	
-	// TODO: à compléter avec la création d'un nouveau coup
-	
-	/* par exemple : */
+	// nouveau coup, couple (ligne, colonne)
+    
 	coup->ligne = i;
 	coup->colonne = j;
 	
@@ -119,18 +114,37 @@ Coup * nouveauCoup( int i, int j ) {
 }
 
 // Demander à l'humain quel coup jouer 
-Coup * demanderCoup () {
-
-	// TODO...
-
+Coup * demanderCoup (Etat * etat) {
+    
+    // TODO demander seulement le numero de la colonne
 	/* par exemple : */
-	int i,j;
-	printf("\n quelle ligne ? ") ;
-	scanf("%d",&i); 
-	printf(" quelle colonne ? ") ;
-	scanf("%d",&j); 
+	int ligne, col;
 	
-	return nouveauCoup(i,j);
+	printf(" quelle colonne ? ") ;
+	scanf("%d",&col); 
+    
+    // on prend pour ligne la premiere dernière ligne vide (en partant du haut)
+    ligne = 0 ;
+    // si la premiere ligne est remplie (qu'on a deja la colonne entiere de jeton)
+    // on retourne le coup
+    if(etat->plateau[ligne][col] != ' '){
+        return nouveauCoup(ligne,col);
+    }
+    
+    // inferieur a 6 - 1
+    while(ligne < 5){
+        ligne ++ ;
+
+        // on se stop des qu'on a une case non vide (la derniere case vide devient notre num de ligne)
+        if(etat->plateau[ligne][col] != ' '){
+            break ;
+        }
+        //printf("on a %d ",ligne) ;
+    }
+	
+	//printf("apres le while") ;
+	// faire ligne - 1 ou pas ?
+	return nouveauCoup(ligne,col);
 }
 
 // Modifier l'état en jouant un coup 
@@ -138,15 +152,21 @@ Coup * demanderCoup () {
 int jouerCoup( Etat * etat, Coup * coup ) {
 
 	// TODO: à compléter
+    
+    //printf("dans jouer coup etat->plateau[coup->ligne][coup->colonne] %c ", etat->plateau[coup->ligne][coup->colonne]) ;
 	
-	/* par exemple : */
-	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' )
+	// si on a deja un jeton a l'emplacement de notre coup
+	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' ){
+        printf("dans le print diff avec %d , %d", coup->ligne, coup -> colonne) ;
+    
 		return 0;
-	else {
+    }else {
+        
 		etat->plateau[coup->ligne][coup->colonne] = etat->joueur ? 'O' : 'X';
 		
 		// à l'autre joueur de jouer
 		etat->joueur = AUTRE_JOUEUR(etat->joueur); 	
+    //printf("APRES coup etat->plateau[coup->ligne][coup->colonne] %c ", etat->plateau[coup->ligne][coup->colonne]) ;
 
 		return 1;
 	}	
@@ -164,8 +184,8 @@ Coup ** coups_possibles( Etat * etat ) {
 	
 	/* par exemple */
 	int i,j;
-	for(i=0; i < 3; i++) {
-		for (j=0; j < 3; j++) {
+	for(i=0 ; i < 6 ; i++) {
+		for (j=0 ; j < 7 ; j++) {
 			if ( etat->plateau[i][j] == ' ' ) {
 				coups[k] = nouveauCoup(i,j); 
 				k++;
@@ -260,43 +280,52 @@ FinDePartie testFin( Etat * etat ) {
 	
 	// tester si un joueur a gagné
 	int i,j,k,n = 0;
-	for ( i=0;i < 3; i++) {
-		for(j=0; j < 3; j++) {
+	for ( i=0;i < 6; i++) {
+		for(j=0; j < 7; j++) {
 			if ( etat->plateau[i][j] != ' ') {
 				n++;	// nb coups joués
 			
 				// lignes
 				k=0;
-				while ( k < 3 && i+k < 3 && etat->plateau[i+k][j] == etat->plateau[i][j] ) 
+				while ( k < 4 && i+k < 6 && etat->plateau[i+k][j] == etat->plateau[i][j] ) 
 					k++;
-				if ( k == 3 ) 
+				if ( k == 4 ) // si on a 4 jetons d'affilé sur la meme ligne
 					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
 				// colonnes
 				k=0;
-				while ( k < 3 && j+k < 3 && etat->plateau[i][j+k] == etat->plateau[i][j] ) 
+				while ( k < 4 && j+k < 7 && etat->plateau[i][j+k] == etat->plateau[i][j] ) 
 					k++;
-				if ( k == 3 ) 
+				if ( k == 4 ) // si on a 4 jetons d'affilé sur la meme colonne 
 					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
+                
+                
+                
 				// diagonales
-				k=0;
-				while ( k < 3 && i+k < 3 && j+k < 3 && etat->plateau[i+k][j+k] == etat->plateau[i][j] ) 
+				k=0;                            // prendre 7 ou 6 ?
+				while ( k < 4 && i+k < 6 && j+k < 7 && etat->plateau[i+k][j+k] == etat->plateau[i][j] ) 
 					k++;
-				if ( k == 3 ) 
+                
+                
+				if ( k == 4 ) // si on a 4 jetons d'affilé sur la meme diagonale 
 					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;
 
+                
+                
+                
 				k=0;
-				while ( k < 3 && i+k < 3 && j-k >= 0 && etat->plateau[i+k][j-k] == etat->plateau[i][j] ) 
+                                    // prendre 6 ou 7 ?
+				while ( k < 4 && i+k < 6 && j-k >= 0 && etat->plateau[i+k][j-k] == etat->plateau[i][j] ) 
 					k++;
-				if ( k == 3 ) 
+				if ( k == 4 ) // si on a 4 jetons d'affilé sur la meme diagonale
 					return etat->plateau[i][j] == 'O'? ORDI_GAGNE : HUMAIN_GAGNE;		
 			}
 		}
 	}
 
 	// et sinon tester le match nul	
-	if ( n == 3*3 ) 
+	if ( n == 6*7 ) 
 		return MATCHNUL;
 		
 	return NON;
@@ -376,13 +405,14 @@ int main(void) {
 	// boucle de jeu
 	do {
 		printf("\n");
+        // affiche la grille
 		afficheJeu(etat);
 		
 		if ( etat->joueur == 0 ) {
 			// tour de l'humain
 			
 			do {
-				coup = demanderCoup();
+				coup = demanderCoup(etat);
 			} while ( !jouerCoup(etat, coup) );
 									
 		}
