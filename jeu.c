@@ -120,24 +120,17 @@ Coup * demanderCoup (Etat * etat) {
     
     // on prend pour ligne la dernière ligne vide (en partant du haut)
     ligne = 0 ;
-    
-    // si la premiere ligne est remplie (qu'on a deja la colonne entiere de jeton)
-    // on retourne le coup
-    if(etat->plateau[ligne][col] != ' '){
-        return nouveauCoup(ligne,col);
-    }
-    
-    // inferieur a 6 - 1
-    while(ligne < 5){
-        ligne ++ ;
-
+       
+    while(ligne < 6){
         // on se stop des qu'on a une case non vide (la derniere case vide devient notre num de ligne)
         if(etat->plateau[ligne][col] != ' '){
             break ;
         }
+        ligne ++ ;
     }
 	
-	return nouveauCoup(ligne,col);
+
+	return nouveauCoup(ligne - 1,col);
 }
 
 // Modifier l'état en jouant un coup 
@@ -165,19 +158,18 @@ Coup ** coups_possibles( Etat * etat ) {
 	Coup ** coups = (Coup **) malloc((1+LARGEUR_MAX) * sizeof(Coup *) );
 	
 	int k = 0;
-	
-	// TODO: à compléter
-	
-	/* par exemple */
-	int i,j;
-	for(i=0 ; i < 6 ; i++) {
-		for (j=0 ; j < 7 ; j++) {
-			if ( etat->plateau[i][j] == ' ' ) {
-				coups[k] = nouveauCoup(i,j); 
+    
+    
+    for(int col = 0 ; col < 7 ; col ++){
+        for(int ligne = 0 ; ligne < 6 ; ligne ++){
+            // on peut ajouter les jetons sur chaques colonnes, a la suite du dernier jeton mis sur celui-ci
+            if ( etat->plateau[ligne][col] != ' ' && ligne >=1) { 
+				coups[k] = nouveauCoup(ligne - 1 ,col); // on ajoute le coup
 				k++;
+                break ; // on sort de la boucle des qu'on a ajouté le coup associé a la colonne
 			}
-		}
-	}
+        }
+    }
 	/* fin de l'exemple */
 	
 	coups[k] = NULL;
@@ -307,7 +299,7 @@ FinDePartie testFin( Etat * etat ) {
 		}
 	}
 
-	// et sinon tester le match nul	
+	// et sinon tester le match nul	 (si on a parcourut toutes les cases cad si tout est remplit)
 	if ( n == 6*7 ) 
 		return MATCHNUL;
 		
