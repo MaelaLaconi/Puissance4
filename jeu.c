@@ -340,24 +340,66 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 		- implémenter l'algorithme MCTS-UCT pour déterminer le meilleur coup ci-dessous*/
 
 	int iter = 0;
-	//https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ base sur ca
+	//https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ base sur ca et diapo 37 du cours
 	do {
 	
         Noeud *currentState = racine ; // l'etat courant
-        Noeud *resultSimulation = racine ;
-
-        double bValue = 0 ; 
-        int t = 0 ; // nombre total de simulations
+        Noeud *noeudTmp, *maxNoeud, *listEnfants[LARGEUR_MAX] ;
+        int cptEnfants = 0 ; // index pour remplir le tableau d'enfant
+        double bValue, Ui, max ; 
+        int i = 0 ;
+        int continuer = 1 ;
         
-        // tant que le noeud n'est pas terminal
-        while(resultSimulation->nb_enfants != 0){
-            // on prend un enfant aleatoirement
-            resultSimulation =  resultSimulation->enfants[rand()%resultSimulation->nb_enfants] ; // -1 ou pas ??
+        // Sélectionner
+        while(continuer){
+            
+            // si on a pas un noeud terminal
+            if(testFin(currentState->etat)  == NON){
+                
+                for(i = 0 ; i < currentState->nb_enfants ; i++){
+                    noeudTmp = currentState->enfants[i] ;
+                    max = -10000 ; // valeur par defaut
+                    
+                    // si le noeud n'a pas de simus
+                    if(noeudTmp->nb_simus == 0){
+                        // ajout du noeud au enfants pour simuler 
+                        listEnfants[cptEnfants++] = noeudTmp ;
+                            continuer = 0 ;
+                    }else{
+                            Ui = (double) noeudTmp->nb_victoires/(double) noeudTmp->nb_simus ; 
+                            
+                            // si c'est a l'humain de jouer
+                            if(!noeudTmp->joueur) Ui = -Ui ;
+                            
+                            bValue = Ui + sqrt(2) * sqrt(log(currentState->nb_simus)/noeudTmp->nb_simus) ;
+                            
+                            if(bValue > max){
+                                max = bValue ;
+                                // noeud avec la plus grande bValue
+                                maxNoeud = noeudTmp ;
+                            }
+                            
+                    }
+                }
+                
+                if(continuer){
+                    currentState = maxNoeud ;
+                    // si le noeud n'a pas d'endants
+                    if(!currentState->nb_enfants){
+                        coups = coups_possibles(currentState->etat) ;
+                        
+                        k = 0 ;
+                        while ( coups[k] != NULL) {
+                            enfant = ajouterEnfant(currentState, coups[k]);
+                            k++;
+                        }
+                    }
+                }
+            }else{ // si testFin(currentState->etat)  != NON
+                    listEnfants[cptEnfants++] = currentState ;
+                    continue = 0 ;
+            }
         }
-	
-	
-		// à compléter par l'algorithme MCTS-UCT... 
-	
 	
 	
 	
