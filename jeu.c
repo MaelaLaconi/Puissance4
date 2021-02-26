@@ -333,16 +333,27 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	}
 	
 	
-	meilleur_coup = coups[ rand()%k ]; // choix aléatoire
+	/*meilleur_coup = coups[ rand()%k ]; // choix aléatoire
 	
-	/*  TODO :
+	  TODO :
 		- supprimer la sélection aléatoire du meilleur coup ci-dessus
-		- implémenter l'algorithme MCTS-UCT pour déterminer le meilleur coup ci-dessous
+		- implémenter l'algorithme MCTS-UCT pour déterminer le meilleur coup ci-dessous*/
 
 	int iter = 0;
-	
+	//https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ base sur ca
 	do {
 	
+        Noeud *currentState = racine ; // l'etat courant
+        Noeud *resultSimulation = racine ;
+
+        double bValue = 0 ; 
+        int t = 0 ; // nombre total de simulations
+        
+        // tant que le noeud n'est pas terminal
+        while(resultSimulation->nb_enfants != 0){
+            // on prend un enfant aleatoirement
+            resultSimulation =  resultSimulation->enfants[rand()%resultSimulation->nb_enfants] ; // -1 ou pas ??
+        }
 	
 	
 		// à compléter par l'algorithme MCTS-UCT... 
