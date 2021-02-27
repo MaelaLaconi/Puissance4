@@ -10,6 +10,8 @@
 #include <math.h>
 #include <time.h>
 
+#include <limits.h>
+
 // Paramètres du jeu
 #define LARGEUR_MAX 7 		// nb max de fils pour un noeud (= nb max de coups possibles)
                             // on peut mettre un jeton sur chaque ligne
@@ -306,7 +308,8 @@ FinDePartie testFin( Etat * etat ) {
 	return NON;
 }
 
-
+int strat ; // 0 pour max et 1 pour robuste
+int optimisation ; // amelioration de la simulation (question 3)  ie toujours choisir un coup gagnant
 
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
 // en tempsmax secondes = 3
@@ -317,6 +320,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	int temps;
 
 	Coup ** coups;
+    Coup ** coupsPossibles ;
 	Coup * meilleur_coup ;
 	
 	// Créer l'arbre de recherche
@@ -325,6 +329,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	
 	// créer les premiers noeuds:
 	coups = coups_possibles(racine->etat); 
+    
 	int k = 0;
 	Noeud * enfant;
 	while ( coups[k] != NULL) {
@@ -333,83 +338,190 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	}
 	
 	
-	/*meilleur_coup = coups[ rand()%k ]; // choix aléatoire
-	
-	  TODO :
-		- supprimer la sélection aléatoire du meilleur coup ci-dessus
-		- implémenter l'algorithme MCTS-UCT pour déterminer le meilleur coup ci-dessous*/
 
 	int iter = 0;
-	//https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ base sur ca et diapo 37 du cours
-	do {
+
+    do {
 	
-        Noeud *currentState = racine ; // l'etat courant
-        Noeud *noeudTmp, *maxNoeud, *listEnfants[LARGEUR_MAX] ;
+        Noeud *currentNode = racine ; // l'etat courant
+        Noeud *selectedNode, *listEnfants[LARGEUR_MAX] ;
+        Noeud *maxNode ; //noeuds avec la Bvalue max
         int cptEnfants = 0 ; // index pour remplir le tableau d'enfant
         double bValue, Ui, max ; 
         int i = 0 ;
         int continuer = 1 ;
         
         // Sélectionner
-        while(continuer){
+        while(continuer == 1){
+            max = INT_MIN ; // valeur par defaut
             
             // si on a pas un noeud terminal
-            if(testFin(currentState->etat)  == NON){
-                
-                for(i = 0 ; i < currentState->nb_enfants ; i++){
-                    noeudTmp = currentState->enfants[i] ;
-                    max = -10000 ; // valeur par defaut
+            if(testFin(currentNode->etat)  == NON){
+
+                for(i = 0 ; i < currentNode->nb_enfants ; i++){
+                    enfant = currentNode->enfants[i] ;
                     
-                    // si le noeud n'a pas de simus
-                    if(noeudTmp->nb_simus == 0){
+                    // si le noeud n'a jamais été simulé
+                    if(enfant->nb_simus == 0){
                         // ajout du noeud au enfants pour simuler 
-                        listEnfants[cptEnfants++] = noeudTmp ;
-                            continuer = 0 ;
-                    }else{
-                            Ui = (double) noeudTmp->nb_victoires/(double) noeudTmp->nb_simus ; 
+                        listEnfants[cptEnfants++] = enfant ;
+                        continuer = 0 ;
+                    }else{ // si on est dans le cas avec un noeud qui a été deja simulé
+                        
+                            // calcul de µi
+                            Ui = (double) enfant->nb_victoires/(double) enfant->nb_simus ; 
+                            
+                            // signe pour la b value
+                            int signe = 1 ;
                             
                             // si c'est a l'humain de jouer
-                            if(!noeudTmp->joueur) Ui = -Ui ;
+                            if(enfant->joueur == 0){
+                                signe = -1 ;
+                            }
                             
-                            bValue = Ui + sqrt(2) * sqrt(log(currentState->nb_simus)/noeudTmp->nb_simus) ;
+                            // avec c = sqrt(2)
+                            bValue = (signe * Ui) + sqrt(2) * sqrt(log(currentNode->nb_simus)/enfant->nb_simus) ;
                             
                             if(bValue > max){
+                                // on remplace la valeur max des b value 
                                 max = bValue ;
+                                
                                 // noeud avec la plus grande bValue
-                                maxNoeud = noeudTmp ;
+                                maxNode = enfant ;
                             }
                             
                     }
                 }
                 
-                if(continuer){
-                    currentState = maxNoeud ;
+                // cas ou on est pas passé dans le if avec un noeud sans simulation
+                if(continuer == 1){
+                    currentNode = maxNode ;
+                    
                     // si le noeud n'a pas d'endants
-                    if(!currentState->nb_enfants){
-                        coups = coups_possibles(currentState->etat) ;
+                    if(currentNode->nb_enfants == 0){
+                        coups = coups_possibles(currentNode->etat) ;
                         
                         k = 0 ;
                         while ( coups[k] != NULL) {
-                            enfant = ajouterEnfant(currentState, coups[k]);
+                            ajouterEnfant(currentNode, coups[k]);
                             k++;
                         }
                     }
                 }
-            }else{ // si testFin(currentState->etat)  != NON
-                    listEnfants[cptEnfants++] = currentState ;
-                    continue = 0 ;
+            }else{ // si testFin(currentNode->etat)  != NON
+                    listEnfants[cptEnfants++] = currentNode ;
+                    continuer = 0 ;
             }
         }
 	
 	
-	
+        // on prend un noeud au hasard dans la liste des enfants non simulés
+        selectedNode = listEnfants[rand()%cptEnfants] ;
+        
+        // on prend comme état de départ l'état du noeuds séléctionné
+        Etat *state = copieEtat(selectedNode->etat) ;
+        
+        // si on ne choisit pas l'optilisation
+        if(optimisation == 0){
+            //tant que l'etat n'est pas final
+            while(testFin(state) == NON){
+                // coup possible a partir de state
+                coupsPossibles = coups_possibles(state) ;
+                k = 0 ;//nombre de coups possibles
+                while ( coupsPossibles[k] != NULL) {
+                    k++;
+                }
+                
+                // on prend au hasard un coup dans la liste des coups possibles
+                Coup* selectedCoup = coupsPossibles[rand()%k] ;
+                jouerCoup(state, selectedCoup) ;
+            }
+        }else{// si on a choisit l'amelioration
+            // prochain coup, initialiser avec le coup du début
+            Etat *nextState = copieEtat(state) ;
+            // permet de savoir si le prochain etat est final ou non
+            int isFinal ;
+            
+            //tant que l'etat n'est pas final
+             while(testFin(state) == NON){
+                 isFinal = 0 ; // pour le moment on ne sait pas si l'etat est final
+                 
+                // coup possible a partir de state
+                coupsPossibles = coups_possibles(state) ;
+                k = 0 ;//nombre de coups possibles
+                while ( coupsPossibles[k] != NULL) {
+                    k++;
+                }
+                
+                //parcours de toute la liste de coups pour choisir un coup gagnant si cela est possible
+                for(int i = 0 ; i < k ; i++){
+                    // prochain coup, initialiser avec le coup du début
+                    nextState = copieEtat(state) ;
+                    jouerCoup(nextState, coupsPossibles[i]) ;
+                    
+                    // si ce coup mene a la victoire de l'ordinateur
+                    if(testFin(nextState) == ORDI_GAGNE){
+                        isFinal = 1 ;
+                        jouerCoup(state, coupsPossibles[i]) ;
+                        break ; //on arrete de parcourir la liste car on a un etat gagnant pour l'ordi
+                    }
+                }
+                
+                // si aucun coup menant a une victoire pour l'ordi n'a été trouvé
+                if(isFinal == 0){
+                    // on prend un coup au hasard dans la liste
+                    Coup* selectedCoup = coupsPossibles[rand()%k] ;
+                    jouerCoup(state, selectedCoup) ;
+                }
+                
+                
+            }
+            
+        }
+        
+        
+        currentNode = selectedNode ; // on prend comme noeud courant le noeud qui a ete choisi
+        
+        // remonter a la racine
+        while(currentNode != NULL){
+            // si l'ordi gagne  et on considere q'un match nul est une partie de perdue
+            if(testFin(state) == ORDI_GAGNE || testFin(state) == MATCHNUL){
+                currentNode->nb_victoires++ ;
+            }
+            
+            //on ajoute une simulation au noeud courant
+            currentNode->nb_simus++ ;
+            // pour remonter jusqu'a la racine
+            currentNode = currentNode->parent ;
+            
+        }
+        
+        free(state) ;
 		toc = clock(); 
 		temps = (int)( ((double) (toc - tic)) / CLOCKS_PER_SEC );
 		iter ++;
 	} while ( temps < tempsmax );
 	
 	/* fin de l'algorithme  */ 
-	
+    
+    int maxSim = 0 ;
+    // pour tout les enfants de la racine
+	for(int i = 0 ; i < racine->nb_enfants ; i++){
+        int nombreSimus ;
+        
+        // choix stratégie max
+        if(strat == 0){
+            nombreSimus = racine->enfants[i]->nb_simus ;
+        }
+        else{ //strategie robuste
+            nombreSimus = racine->enfants[i]->nb_victoires ;
+        }
+        
+        if(nombreSimus > maxSim){
+            meilleur_coup = racine->enfants[i]->coup ;
+            maxSim = racine->enfants[i]->nb_simus ;
+        }
+    }
 	// Jouer le meilleur premier coup
 	jouerCoup(etat, meilleur_coup );
 	
@@ -430,6 +542,15 @@ int main(void) {
 	printf("Qui commence (0 : humain, 1 : ordinateur) ? ");
 	scanf("%d", &(etat->joueur) );
 	
+    
+    //Choisir la stratégie
+    printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
+	scanf("%d", &strat );
+    
+    // Choisir si on veut ou non la simulation améliorer
+    printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
+	scanf("%d", &optimisation );
+    
 	// boucle de jeu
 	do {
 		printf("\n");
