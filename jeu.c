@@ -16,7 +16,7 @@
 #define LARGEUR_MAX 7 		// nb max de fils pour un noeud (= nb max de coups possibles)
                             // on peut mettre un jeton sur chaque ligne
 
-#define TEMPS 3		// temps de calcul pour un coup avec MCTS (en secondes)
+#define TEMPS 2		// temps de calcul pour un coup avec MCTS (en secondes)
 
 // macros
 #define AUTRE_JOUEUR(i) (1-(i))
@@ -78,7 +78,7 @@ Etat * etat_initial( void ) {
 
 void afficheJeu(Etat * etat) {
 
-
+    fflush(stdout) ;
 	/* par exemple : */
 	int i,j;
 	printf("   |");
@@ -121,7 +121,7 @@ Coup * demanderCoup (Etat * etat) {
 	scanf("%d",&col); 
     
     // on prend pour ligne la dernière ligne vide (en partant du haut)
-    ligne = 0 ;
+    /*ligne = 0 ;
        
     while(ligne < 6){
         // on se stop des qu'on a une case non vide (la derniere case vide devient notre num de ligne)
@@ -129,6 +129,12 @@ Coup * demanderCoup (Etat * etat) {
             break ;
         }
         ligne ++ ;
+    }*/
+    
+    for(ligne = 0 ; ligne < 6 ; ligne ++){
+       if(etat->plateau[ligne][col] != ' '){
+            break ;
+        } 
     }
 	
 
@@ -161,15 +167,16 @@ Coup ** coups_possibles( Etat * etat ) {
 	
 	int k = 0;
     
-    
+    int ligne ;
     for(int col = 0 ; col < 7 ; col ++){
-        for(int ligne = 0 ; ligne < 6 ; ligne ++){
+        for(ligne = 0 ; ligne < 6 ; ligne ++){
             // on peut ajouter les jetons sur chaques colonnes, a la suite du dernier jeton mis sur celui-ci
-            if ( etat->plateau[ligne][col] != ' ' && ligne >=1) { 
-				coups[k] = nouveauCoup(ligne - 1 ,col); // on ajoute le coup
-				k++;
+            if ( etat->plateau[ligne][col] != ' ') { 
                 break ; // on sort de la boucle des qu'on a ajouté le coup associé a la colonne
 			}
+        }
+        if(ligne > 0){
+            coups[k++] = nouveauCoup(ligne-1, col);
         }
     }
 	/* fin de l'exemple */
@@ -308,8 +315,8 @@ FinDePartie testFin( Etat * etat ) {
 	return NON;
 }
 
-int strat ; // 0 pour max et 1 pour robuste
-int optimisation ; // amelioration de la simulation (question 3)  ie toujours choisir un coup gagnant
+int strat = 0 ; // 0 pour max et 1 pour robuste
+int optimisation = 0 ; // amelioration de la simulation (question 3)  ie toujours choisir un coup gagnant
 
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
 // en tempsmax secondes = 3
@@ -436,7 +443,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
                 Coup* selectedCoup = coupsPossibles[rand()%k] ;
                 jouerCoup(state, selectedCoup) ;
             }
-        }else{// si on a choisit l'amelioration
+        }/*else{// si on a choisit l'amelioration
             // prochain coup, initialiser avec le coup du début
             Etat *nextState = copieEtat(state) ;
             // permet de savoir si le prochain etat est final ou non
@@ -477,7 +484,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
                 
             }
             
-        }
+        }*/
         
         
         currentNode = selectedNode ; // on prend comme noeud courant le noeud qui a ete choisi
@@ -513,9 +520,9 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
         if(strat == 0){
             nombreSimus = racine->enfants[i]->nb_simus ;
         }
-        else{ //strategie robuste
+        /*else{ //strategie robuste
             nombreSimus = racine->enfants[i]->nb_victoires ;
-        }
+        }*/
         
         if(nombreSimus > maxSim){
             meilleur_coup = racine->enfants[i]->coup ;
@@ -533,6 +540,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 int main(void) {
 
 	Coup * coup;
+    Coup ** coupsPossibles ;
 	FinDePartie fin;
 	
 	// initialisation
@@ -544,19 +552,18 @@ int main(void) {
 	
     
     //Choisir la stratégie
-    printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
+    /*printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
 	scanf("%d", &strat );
     
     // Choisir si on veut ou non la simulation améliorer
     printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
-	scanf("%d", &optimisation );
+	scanf("%d", &optimisation );*/
     
 	// boucle de jeu
 	do {
 		printf("\n");
         // affiche la grille
 		afficheJeu(etat);
-		
 		if ( etat->joueur == 0 ) {
 			// tour de l'humain
 			
