@@ -315,8 +315,8 @@ FinDePartie testFin( Etat * etat ) {
 	return NON;
 }
 
-int strat = 0 ; // 0 pour max et 1 pour robuste
-int optimisation = 0 ; // amelioration de la simulation (question 3)  ie toujours choisir un coup gagnant
+int strat ; // 0 pour max et 1 pour robuste
+int optimisation ; // amelioration de la simulation (question 3)  ie toujours choisir un coup gagnant
 
 // Calcule et joue un coup de l'ordinateur avec MCTS-UCT
 // en tempsmax secondes = 3
@@ -443,7 +443,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
                 Coup* selectedCoup = coupsPossibles[rand()%k] ;
                 jouerCoup(state, selectedCoup) ;
             }
-        }/*else{// si on a choisit l'amelioration
+        }else{// si on a choisit l'amelioration
             // prochain coup, initialiser avec le coup du début
             Etat *nextState = copieEtat(state) ;
             // permet de savoir si le prochain etat est final ou non
@@ -484,7 +484,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
                 
             }
             
-        }*/
+        }
         
         
         currentNode = selectedNode ; // on prend comme noeud courant le noeud qui a ete choisi
@@ -520,9 +520,9 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
         if(strat == 0){
             nombreSimus = racine->enfants[i]->nb_simus ;
         }
-        /*else{ //strategie robuste
+        else{ //strategie robuste
             nombreSimus = racine->enfants[i]->nb_victoires ;
-        }*/
+        }
         
         if(nombreSimus > maxSim){
             meilleur_coup = racine->enfants[i]->coup ;
@@ -552,12 +552,12 @@ int main(void) {
 	
     
     //Choisir la stratégie
-    /*printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
+    printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
 	scanf("%d", &strat );
     
     // Choisir si on veut ou non la simulation améliorer
     printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
-	scanf("%d", &optimisation );*/
+	scanf("%d", &optimisation );
     
 	// boucle de jeu
 	do {
