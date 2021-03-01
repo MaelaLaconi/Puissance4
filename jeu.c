@@ -66,8 +66,8 @@ Etat * copieEtat( Etat * src ) {
 Etat * etat_initial( void ) {
 	Etat * etat = (Etat *)malloc(sizeof(Etat));
 		
-    // grille 6 lignes, 7 colonnes vides
-    int i,j;	
+        // grille 6 lignes, 7 colonnes vides
+        int i,j;	
 	for (i=0; i< 6; i++)
 		for ( j=0; j<7; j++)
 			etat->plateau[i][j] = ' ';
@@ -78,7 +78,6 @@ Etat * etat_initial( void ) {
 
 void afficheJeu(Etat * etat) {
 
-    fflush(stdout) ;
 	/* par exemple : */
 	int i,j;
 	printf("   |");
@@ -116,25 +115,17 @@ Coup * demanderCoup (Etat * etat) {
     
     //demander seulement le numero de la colonne et calculer la ligne
 	int ligne, col;
-	
+
 	printf(" quelle colonne ? ") ;
 	scanf("%d",&col); 
     
-    // on prend pour ligne la dernière ligne vide (en partant du haut)
-    /*ligne = 0 ;
-       
-    while(ligne < 6){
-        // on se stop des qu'on a une case non vide (la derniere case vide devient notre num de ligne)
-        if(etat->plateau[ligne][col] != ' '){
-            break ;
-        }
-        ligne ++ ;
-    }*/
-    
-    for(ligne = 0 ; ligne < 6 ; ligne ++){
-       if(etat->plateau[ligne][col] != ' '){
-            break ;
-        } 
+  
+    	// parcours de toutes les lignes de notre colonne
+	for(ligne = 0 ; ligne < 6 ; ligne ++){
+		// si la case est remplie on s'arrete pour avoir la derniere case vide
+	    if(etat->plateau[ligne][col] != ' '){
+		break ;
+	    } 
     }
 	
 
@@ -148,7 +139,7 @@ int jouerCoup( Etat * etat, Coup * coup ) {
 	// si on a deja un jeton a l'emplacement de notre coup
 	if ( etat->plateau[coup->ligne][coup->colonne] != ' ' ){    
 		return 0;
-    }else {
+    	}else {
         
 		etat->plateau[coup->ligne][coup->colonne] = etat->joueur ? 'O' : 'X';
 		
@@ -167,18 +158,18 @@ Coup ** coups_possibles( Etat * etat ) {
 	
 	int k = 0;
     
-    int ligne ;
-    for(int col = 0 ; col < 7 ; col ++){
-        for(ligne = 0 ; ligne < 6 ; ligne ++){
-            // on peut ajouter les jetons sur chaques colonnes, a la suite du dernier jeton mis sur celui-ci
-            if ( etat->plateau[ligne][col] != ' ') { 
-                break ; // on sort de la boucle des qu'on a ajouté le coup associé a la colonne
-			}
+    	int ligne ;
+    	for(int col = 0 ; col < 7 ; col ++){
+	    for(ligne = 0 ; ligne < 6 ; ligne ++){
+	        // on peut ajouter les jetons sur chaques colonnes, a la suite du dernier jeton mis sur celui-ci
+	    	if ( etat->plateau[ligne][col] != ' ') { 
+		    break ; // on sort de la boucle des qu'on a ajouté le coup associé a la colonne
+		}
+	    }
+            if(ligne > 0){
+                coups[k++] = nouveauCoup(ligne-1, col);
+            }
         }
-        if(ligne > 0){
-            coups[k++] = nouveauCoup(ligne-1, col);
-        }
-    }
 	/* fin de l'exemple */
 	
 	coups[k] = NULL;
@@ -286,8 +277,8 @@ FinDePartie testFin( Etat * etat ) {
                 
                 
                 
-				// diagonales : PAS SURE DES CALCULS
-				k=0;                            // prendre 7 ou 6 ?
+				// diagonales
+				k=0;                            
 				while ( k < 4 && i+k < 6 && j+k < 7 && etat->plateau[i+k][j+k] == etat->plateau[i][j] ) 
 					k++;
                 
@@ -299,7 +290,7 @@ FinDePartie testFin( Etat * etat ) {
                 
                 
 				k=0;
-                                    // prendre 6 ou 7 ?
+                            
 				while ( k < 4 && i+k < 6 && j-k >= 0 && etat->plateau[i+k][j-k] == etat->plateau[i][j] ) 
 					k++;
 				if ( k == 4 ) // si on a 4 jetons d'affilé sur la meme diagonale
@@ -327,7 +318,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	int temps;
 
 	Coup ** coups;
-    Coup ** coupsPossibles ;
+        Coup ** coupsPossibles ;
 	Coup * meilleur_coup ;
 	
 	// Créer l'arbre de recherche
@@ -489,7 +480,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
         
         currentNode = selectedNode ; // on prend comme noeud courant le noeud qui a ete choisi
         
-        // remonter a la racine
+        // remonter a la racine (jusqu'a ce qu'on arrive a un noeud sans parent)
         while(currentNode != NULL){
             // si l'ordi gagne  et on considere q'un match nul est une partie de perdue
             if(testFin(state) == ORDI_GAGNE || testFin(state) == MATCHNUL){
@@ -511,24 +502,24 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	
 	/* fin de l'algorithme  */ 
     
-    int maxSim = 0 ;
-    // pour tout les enfants de la racine
+        int maxSim = 0 ;
+        // pour tout les enfants de la racine
 	for(int i = 0 ; i < racine->nb_enfants ; i++){
-        int nombreSimus ;
+            int nombreSimus ;
         
-        // choix stratégie max
-        if(strat == 0){
-            nombreSimus = racine->enfants[i]->nb_simus ;
-        }
-        else{ //strategie robuste
-            nombreSimus = racine->enfants[i]->nb_victoires ;
-        }
+	    // choix stratégie max
+	    if(strat == 0){
+	        nombreSimus = racine->enfants[i]->nb_simus ;
+	    }
+	    else{ //strategie robuste
+	        nombreSimus = racine->enfants[i]->nb_victoires ;
+	    }
         
-        if(nombreSimus > maxSim){
-            meilleur_coup = racine->enfants[i]->coup ;
-            maxSim = racine->enfants[i]->nb_simus ;
+            if(nombreSimus > maxSim){
+                meilleur_coup = racine->enfants[i]->coup ;
+                maxSim = racine->enfants[i]->nb_simus ;
+            }
         }
-    }
 	// Jouer le meilleur premier coup
 	jouerCoup(etat, meilleur_coup );
 
@@ -547,7 +538,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 int main(void) {
 
 	Coup * coup;
-    Coup ** coupsPossibles ;
+        Coup ** coupsPossibles ;
 	FinDePartie fin;
 	
 	// initialisation
@@ -561,24 +552,24 @@ int main(void) {
 		printf("Qui commence (0 : humain, 1 : ordinateur) ? ");
 		scanf("%d", &(etat->joueur) );	
         
-    } while (etat->joueur < 0 || etat->joueur > 1);
+         } while (etat->joueur < 0 || etat->joueur > 1);
 
 
 
 
 	 do {
-         //Choisir la stratégie
-    	printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
-		scanf("%d", &strat );        
-    } while (strat < 0 || strat > 1);
+             //Choisir la stratégie
+    	     printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
+	     scanf("%d", &strat );        
+         } while (strat < 0 || strat > 1);
 
 
-     do {
-        // Choisir si on veut ou non la simulation améliorer
-   		 printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
-		 scanf("%d", &optimisation );
+         do {
+            // Choisir si on veut ou non la simulation améliorer
+   	    printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
+	    scanf("%d", &optimisation );
           
-    } while (optimisation < 0 || optimisation > 1);
+         } while (optimisation < 0 || optimisation > 1);
 
 
     
@@ -591,14 +582,13 @@ int main(void) {
 			// tour de l'humain
 			
 			do {
-				coup = demanderCoup(etat);
+			    coup = demanderCoup(etat);
 			} while ( !jouerCoup(etat, coup) );
 									
 		}
 		else {
-			// tour de l'Ordinateur
-			
-			ordijoue_mcts( etat, TEMPS );
+		    // tour de l'Ordinateur
+		    ordijoue_mcts( etat, TEMPS );
 			
 		}
 		
