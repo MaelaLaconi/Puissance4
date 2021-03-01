@@ -518,8 +518,6 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
             if(nombreSimus > maxSim){
                 meilleur_coup = racine->enfants[i]->coup ;
                 maxSim = nombreSimus ;
-		//maxSim = racine->enfants[i]->nb_simus ;
-
             }
         }
 	// Jouer le meilleur premier coup
