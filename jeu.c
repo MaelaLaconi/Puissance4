@@ -505,14 +505,14 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
         int maxSim = 0 ;
         // pour tout les enfants de la racine
 	for(int i = 0 ; i < racine->nb_enfants ; i++){
-            int nombreSimus ;
+            double nombreSimus ;
         
-	    // choix stratégie max
+	    // choix stratégie robuste
 	    if(strat == 0){
 	        nombreSimus = racine->enfants[i]->nb_simus ;
 	    }
-	    else{ //strategie robuste
-	        nombreSimus = racine->enfants[i]->nb_victoires ;
+	    else{ //strategie max
+		nombreSimus = (double)racine->enfants[i]->nb_victoires/(double) racine->enfants[i]->nb_simus ; 
 	    }
         
             if(nombreSimus > maxSim){
