@@ -502,7 +502,7 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
 	
 	/* fin de l'algorithme  */ 
     
-        int maxSim = 0 ;
+        double maxSim = 0.0 ;
         // pour tout les enfants de la racine
 	for(int i = 0 ; i < racine->nb_enfants ; i++){
             double nombreSimus ;
@@ -517,7 +517,9 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
         
             if(nombreSimus > maxSim){
                 meilleur_coup = racine->enfants[i]->coup ;
-                maxSim = racine->enfants[i]->nb_simus ;
+                maxSim = nombreSimus ;
+		//maxSim = racine->enfants[i]->nb_simus ;
+
             }
         }
 	// Jouer le meilleur premier coup
