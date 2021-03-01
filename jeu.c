@@ -531,6 +531,13 @@ void ordijoue_mcts(Etat * etat, int tempsmax) {
     }
 	// Jouer le meilleur premier coup
 	jouerCoup(etat, meilleur_coup );
+
+	//QUESTION 1
+	int nb_simu = racine->nb_simus;
+	float proba = (float)racine->nb_victoires/(float)nb_simu;
+	printf("Details du calcul : %d / %d == %f \n", nb_simu, racine->nb_victoires, proba);
+	printf ("\nLe nombre de simulations réalisés  : %d\t \nEstimation de la probabilité de victoire de l'ordinateur : %f \n",nb_simu, proba);
+	
 	
 	// Penser à libérer la mémoire :
 	freeNoeud(racine);
@@ -545,19 +552,35 @@ int main(void) {
 	
 	// initialisation
 	Etat * etat = etat_initial(); 
+	etat->joueur = -1;
 	
-	// Choisir qui commence : 
-	printf("Qui commence (0 : humain, 1 : ordinateur) ? ");
-	scanf("%d", &(etat->joueur) );
 	
-    
-    //Choisir la stratégie
-    printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
-	scanf("%d", &strat );
-    
-    // Choisir si on veut ou non la simulation améliorer
-    printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
-	scanf("%d", &optimisation );
+	 do {
+        
+	    // Choisir qui commence : 
+		printf("Qui commence (0 : humain, 1 : ordinateur) ? ");
+		scanf("%d", &(etat->joueur) );	
+        
+    } while (etat->joueur < 0 || etat->joueur > 1);
+
+
+
+
+	 do {
+         //Choisir la stratégie
+    	printf("Quelle stratégie choisir (0 : robuste, 1 : max) ? ");
+		scanf("%d", &strat );        
+    } while (strat < 0 || strat > 1);
+
+
+     do {
+        // Choisir si on veut ou non la simulation améliorer
+   		 printf("Prendre la stratégie améliorée ? (0 : non, 1 : oui) ? ");
+		 scanf("%d", &optimisation );
+          
+    } while (optimisation < 0 || optimisation > 1);
+
+
     
 	// boucle de jeu
 	do {
